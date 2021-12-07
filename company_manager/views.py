@@ -23,14 +23,10 @@ def upload_flechs_json_file(request, pk):
 
             for sheet in sheets:
                 mech_id = sheet["meta"]["uuid"]
+                mech_profile = get_mech_data(sheet)
                 mech = BattleMech.objects.filter(id=mech_id)
-                mech_profile = {
-                    "segments": get_segment_data(sheet),
-                }
+
                 if mech:
-                    for segment in mech_profile["segments"]:
-                        # segment["armor"] =
-                        pass
                     mech.update(mech_profile)
                 else:
                     mech = BattleMech.objects.create(
@@ -110,6 +106,7 @@ def get_mech_data(mech_json_data):
         "name": mech_json_data["meta"]["designation"],
         "heat_dissipation": mech_json_data["heat"]["sinkCapacity"],
         "weight": mech_json_data["meta"]["mass"],
+        "segments": get_segment_data(mech_json_data)
     }
 
 

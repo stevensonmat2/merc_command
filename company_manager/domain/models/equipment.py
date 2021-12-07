@@ -37,6 +37,7 @@ class BattleMechDesign(ComplexEquipment):
 
     def build_mech(self, mech_profile):
         #   check for existing mech design
+        self.build_segments(mech_profile["segments"])
         pass
 
     def build_segments(self, segments_profile):
