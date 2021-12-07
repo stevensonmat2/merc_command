@@ -1,4 +1,5 @@
 from django.db import models
+import uuid
 from .organizations import Company, ORIGIN_CHOICES, REPAIR_COST
 
 
@@ -31,6 +32,9 @@ class DropShip(ComplexEquipment):
 
 
 class BattleMech(ComplexEquipment):
+    id = models.UUIDField(primary_key=True)
+    meta_data = models.TextField()
+
     def build_segments(self, segments_profile):
         for segment in segments_profile:
             new_segment = Segment.objects.create(mech=self)
@@ -160,9 +164,9 @@ class Weapon(Component):
     def build_weapon(self, weapon_profile):
         self.damage = weapon_profile.get("damage", 0)
         self.heat = weapon_profile.get("heat", 0)
-        self.min_range = weapon_profile("min_range", 0)
-        self.short_range = weapon_profile("short_range", 0)
-        self.med_range = weapon_profile("med_range", 0)
-        self.long_range = weapon_profile("long_range", 0)
+        self.min_range = weapon_profile.get("min_range", 0)
+        self.short_range = weapon_profile.get("short_range", 0)
+        self.med_range = weapon_profile.get("med_range", 0)
+        self.long_range = weapon_profile.get("long_range", 0)
         self.build_component(weapon_profile)
         self.save()
