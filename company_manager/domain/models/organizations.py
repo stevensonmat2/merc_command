@@ -1,16 +1,7 @@
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
-
-
-REPAIR_COST = 10
-
-ORIGIN_CHOICES = [
-    ("CLAN", "Clan"),
-    ("INNERSPHERE", "Inner-Sphere"),
-]
-
-FACTION_CHOICES = [()]
+from constants import ORIGIN_CHOICES
 
 
 class User(AbstractUser):

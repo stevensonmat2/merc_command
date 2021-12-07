@@ -1,10 +1,10 @@
 from django.db import models
-import uuid
-from .organizations import Company, ORIGIN_CHOICES, REPAIR_COST
+from .organizations import Company
+from .base import BaseModel
+from constants import REPAIR_COST, ORIGIN_CHOICES, MAINTENANCE_RATE
 
 
-class Equipment(models.Model):
-    name = models.CharField(max_length=30)
+class Equipment(BaseModel):
     variant = models.CharField(max_length=30)
     value = models.DecimalField(max_digits=11, decimal_places=2)
     weight_tons = models.DecimalField(max_digits=8, decimal_places=2)
@@ -22,7 +22,8 @@ class Equipment(models.Model):
 
 
 class ComplexEquipment(Equipment):
-    maintenance_upkeep = models.DecimalField(max_digits=11, decimal_places=2)
+    def maintenance_upkeep(self):
+        return self.value / MAINTENANCE_RATE
 
 
 class DropShip(ComplexEquipment):
@@ -31,15 +32,20 @@ class DropShip(ComplexEquipment):
     reliability = models.IntegerField()
 
 
-class BattleMech(ComplexEquipment):
-    id = models.UUIDField(primary_key=True)
+class BattleMechDesign(ComplexEquipment):
     meta_data = models.TextField()
+
+    def build_mech(self, mech_profile):
+        #   check for existing mech design
+        pass
 
     def build_segments(self, segments_profile):
         for segment in segments_profile:
             new_segment = Segment.objects.create(mech=self)
             new_segment.build_segment(segments_profile[segment])
 
+
+class BattleMech(BattleMechDesign):
     def total_repair_cost(self):
         repair_cost = 0
         segments = self.segments
@@ -48,7 +54,7 @@ class BattleMech(ComplexEquipment):
         return repair_cost
 
 
-class Segment(models.Model):
+class Segment(BaseModel):
     SEGMENT_NAME_CHOICES = [
         ("HEAD", "Head"),
         ("CT", "Center Torso"),
@@ -63,7 +69,6 @@ class Segment(models.Model):
         ("LL", "Left Leg"),
         ("RL", "Right Leg"),
     ]
-    name = models.CharField(max_length=30)
     mech = models.ForeignKey(
         BattleMech, on_delete=models.PROTECT, related_name="segments"
     )
