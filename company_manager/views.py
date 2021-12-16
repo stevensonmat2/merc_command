@@ -13,7 +13,6 @@ def upload_flechs_json_file(request, pk):
     company = get_object_or_404(Company, pk=pk)
     if request.method == "POST":
         json_file = request.FILES["file"]
-        user = request.user
 
         if not json_file.name.endswith(".json"):
             messages.warning(request, "JSON files only")
@@ -29,14 +28,21 @@ def upload_flechs_json_file(request, pk):
                 if mech:
                     mech.update(mech_profile)
                 else:
+                    designation = mech["meta"]["name"].split(" ")
+                    try:
+                        BattleMechDesign.objects.get(
+                            name=designation[0], variant=designation[1]
+                        )
+                    except BattleMechDesign.DoesNotExist:
+                        design = BattleMechDesign.objects.create(
+                            name=designation[0], variant=designation[1]
+                        )
+                        design.build_mech(mech_profile)
+
                     mech = BattleMech.objects.create(
                         id=mech_id, company=company, meta_data=mech
                     )
                     mech.build_mech(mech_profile)
-
-                #     update mech
-                # parse through string
-                # get list of categories that contain items
 
 
 segment_armor = [
@@ -106,7 +112,7 @@ def get_mech_data(mech_json_data):
         "name": mech_json_data["meta"]["designation"],
         "heat_dissipation": mech_json_data["heat"]["sinkCapacity"],
         "weight": mech_json_data["meta"]["mass"],
-        "segments": get_segment_data(mech_json_data)
+        "segments": get_segment_data(mech_json_data),
     }
 
 

@@ -1,11 +1,12 @@
 from django.db import models
 from .organizations import Company
 from .base import BaseModel
-from constants import REPAIR_COST, ORIGIN_CHOICES, MAINTENANCE_RATE
+from .constants import REPAIR_COST, ORIGIN_CHOICES, MAINTENANCE_RATE
 
 
 class Equipment(BaseModel):
     variant = models.CharField(max_length=30)
+    production_year = models.IntegerField()
     value = models.DecimalField(max_digits=11, decimal_places=2)
     weight_tons = models.DecimalField(max_digits=8, decimal_places=2)
     company = models.ForeignKey(
@@ -34,11 +35,10 @@ class DropShip(ComplexEquipment):
 
 class BattleMechDesign(ComplexEquipment):
     meta_data = models.TextField()
+    designation = models.CharField(max_length=30, unique=True)
 
     def build_mech(self, mech_profile):
-        #   check for existing mech design
         self.build_segments(mech_profile["segments"])
-        pass
 
     def build_segments(self, segments_profile):
         for segment in segments_profile:
@@ -47,6 +47,9 @@ class BattleMechDesign(ComplexEquipment):
 
 
 class BattleMech(BattleMechDesign):
+    def update(self, mech_profile):
+        self.build_segments(mech_profile)
+
     def total_repair_cost(self):
         repair_cost = 0
         segments = self.segments
