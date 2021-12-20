@@ -2,6 +2,7 @@ from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from .constants import ORIGIN_CHOICES
+from django.urls import reverse
 
 
 class User(AbstractUser):
@@ -20,6 +21,9 @@ class Company(models.Model):
     )
     origin = models.CharField(max_length=30, choices=ORIGIN_CHOICES)
     wallet = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+
+    def upload_mechs(self):
+        return reverse("upload_mechs", kwargs={"pk": self.pk})
 
 
 class FactionAffinity(models.Model):

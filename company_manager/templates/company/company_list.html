@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>{{ user.username }}'s Companies</h1>
+    <br>
+    {% for company in companies %}
+        <div class="company">
+{#            <h2>{{ company.name }}</h2>#}
+            <h2><a href="{{ company.upload_mechs }}">{{ company.name }}</a></h2>
+{#            {% if user.is_staff %}#}
+{#                {% include 'blog/includes/post_edit_delete_buttons.html' %}#}
+{#                <br><br>#}
+{##}
+{#            {% endif %}#}
+            <br>
+{#            {% if post.hero_image %}#}
+{#                <a href="{{ post.get_absolute_url }}">#}
+{#                    <img class="hero_image"#}
+{#                         src="{{ post.hero_image.image_file.url }}"#}
+{#                         title="{{ post.hero_image.image_title }}"#}
+{#                         alt="{{ post.hero_image.alt_text }}">#}
+{#                </a>#}
+{#            {% endif %}#}
+{#            <br><br>#}
+{#            <p>{{ post.body|truncatechars:200 }}</p>#}
+{##}
+{#            <p>{{ post.servings }}</p>#}
+{#            <div class="date">#}
+{#                Posted on {{ post.published_date }}#}
+{#            </div>#}
+{#            <table>#}
+{#                <tr>#}
+{#                    {% include 'blog/includes/display_tags.html' with slice=":3" %}#}
+{#                </tr>#}
+{#            </table>#}
+        </div>
+    {% endfor %}
+
+{#    {% if all_posts.has_other_pages %}#}
+{#        <tr class="pagination">#}
+{#            {% if all_posts.has_previous %}#}
+{#                <a href="?page={{ all_posts.previous_page_number }}">&laquo;</a>#}
+{#            {% else %}#}
+{#                <!-- <li class="disabled"><span>&laquo;</span> -->#}
+{#            {% endif %}#}
+{#            {% for i in all_posts.paginator.page_range %}#}
+{#                {% if all_posts.number == i %}#}
+{#                    {{ i }}#}
+{#                {% else %}#}
+{#                    <a href="?page={{ i }}">{{ i }}</a>#}
+{#                {% endif %}#}
+{#            {% endfor %}#}
+{#            {% if all_posts.has_next %}#}
+{#                <a href="?page={{ all_posts.next_page_number }}">&raquo;</a>#}
+{#            {% else %}#}
+{#                <!-- <li class="disabled"><span>&raquo;</span> -->#}
+{#            {% endif %}#}
+{#        </tr>#}
+{#    {% endif %}#}
+{% endblock %}

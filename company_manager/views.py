@@ -9,6 +9,19 @@ def create_mech(request):
     return render(request, "mechs/add_mech.html")
 
 
+def company_list(request):
+    user = User.objects.get(id=request.user.id)
+    companies = user.companies.all()
+    return render(
+        request,
+        "company/company_list.html",
+        {
+            "user": user,
+            "companies": companies,
+        },
+    )
+
+
 def upload_flechs_json_file(request, pk):
     company = get_object_or_404(Company, pk=pk)
     if request.method == "POST":
@@ -28,7 +41,7 @@ def upload_flechs_json_file(request, pk):
                 if mech:
                     mech.update(mech_profile)
                 else:
-                    designation = mech["meta"]["name"].split(" ")
+                    designation = mech_profile["name"].split(" ")
                     try:
                         BattleMechDesign.objects.get(
                             name=designation[0], variant=designation[1]
@@ -37,12 +50,14 @@ def upload_flechs_json_file(request, pk):
                         design = BattleMechDesign.objects.create(
                             name=designation[0], variant=designation[1]
                         )
-                        design.build_mech(mech_profile)
+                        # design.build_mech(mech_profile)
 
                     mech = BattleMech.objects.create(
-                        id=mech_id, company=company, meta_data=mech
+                        id=mech_id, company=company, meta_data=mech_profile
                     )
                     mech.build_mech(mech_profile)
+
+    return render(request, "company/upload_mechs.html")
 
 
 segment_armor = [
@@ -59,6 +74,20 @@ segment_armor = [
     "rtc armor",
 ]
 
+segments_dict = {
+    "la": "left arm",
+    "ra": "right arm",
+    "rt": "right torso",
+    "rtr": "rear torso right",
+    "rtl": "rear torso left",
+    "rtc": "rear torso center",
+    "lt": "left torso",
+    "ct": "center torso",
+    "ll": "left leg",
+    "rl": "right leg",
+    "hd": "head",
+}
+
 all_segments = [
     "left arm",
     "right arm",
@@ -67,6 +96,7 @@ all_segments = [
     "center torso",
     "left leg",
     "right leg",
+    "head"
 ]
 meta_items = [
     "weapons",
@@ -92,27 +122,35 @@ def get_segment_data(src_meta_data):
     split_data = [word.lower() for word in src_meta_data.split("\n")]
     segments = {}
     for index, word in enumerate(split_data):
-        if word in segment_armor:
-            segments[word.split(" ")[0]]["armor"] = int(word.split(":")[1])
-        elif word.strip(":") in segments:
+        if word.split(":")[0] in segment_armor:
+            segment = segments_dict[word.split(" ")[0]]
+            segments[segment] = dict()
+            segments[segment]["name"] = segment
+            segments[segment]["armor"] = int(word.split(":")[1])
+            # print(segments[word.split(" ")[0]]["armor"])
+        elif word.strip(":") in all_segments:
             segment = word.strip(":")
             for component in split_data[index:]:
                 if component not in segments:
                     index += 1
                     if component != "-Empty-":
+                        segments[segment] = dict()
+                        segments[segment]["components"] = dict()
+                        segments[segment]["components"][component] = dict()
                         segments[segment]["components"][component]["name"] = component
                 else:
                     break
+    print(segments)
     return segments
 
 
 def get_mech_data(mech_json_data):
     return {
         "uuid": mech_json_data["meta"]["uuid"],
-        "name": mech_json_data["meta"]["designation"],
+        "name": mech_json_data["designation"],
         "heat_dissipation": mech_json_data["heat"]["sinkCapacity"],
         "weight": mech_json_data["meta"]["mass"],
-        "segments": get_segment_data(mech_json_data),
+        "segments": get_segment_data(mech_json_data["meta"]["srcMTF"]),
     }
 
 

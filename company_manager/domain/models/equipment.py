@@ -2,24 +2,36 @@ from django.db import models
 from .organizations import Company
 from .base import BaseModel
 from .constants import REPAIR_COST, ORIGIN_CHOICES, MAINTENANCE_RATE
+import uuid
 
 
 class Equipment(BaseModel):
-    variant = models.CharField(max_length=30)
-    production_year = models.IntegerField()
-    value = models.DecimalField(max_digits=11, decimal_places=2)
-    weight_tons = models.DecimalField(max_digits=8, decimal_places=2)
-    company = models.ForeignKey(
-        Company, on_delete=models.CASCADE, related_name="equipment"
+    variant = models.CharField(max_length=30, null=True, blank=True)
+    production_year = models.IntegerField(null=True, blank=True)
+    value = models.DecimalField(max_digits=11, decimal_places=2, null=True, blank=True)
+    weight_tons = models.DecimalField(
+        max_digits=8, decimal_places=2, null=True, blank=True
     )
-    origin = models.CharField(max_length=30, choices=ORIGIN_CHOICES)
+    company = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        related_name="equipment",
+        null=True,
+        blank=True,
+    )
+    origin = models.CharField(
+        max_length=30, choices=ORIGIN_CHOICES, null=True, blank=True
+    )
 
     def build_equipment(self, equipment_profile):
         self.name = equipment_profile.get("name", "")
         self.variant = equipment_profile.get("variant", "")
-        self.value = equipment_profile.get("value", "")
-        self.weight_tons = equipment_profile("weight", 0.0)
+        self.value = equipment_profile.get("value", 0.0)
+        self.weight_tons = equipment_profile.get("weight", 0.0)
         self.save()
+
+    def __str__(self):
+        return self.name
 
 
 class ComplexEquipment(Equipment):
@@ -34,19 +46,24 @@ class DropShip(ComplexEquipment):
 
 
 class BattleMechDesign(ComplexEquipment):
+    meta_data = models.JSONField(null=True, blank=True)
+    designation = models.CharField(max_length=30, unique=False)
+
+
+class BattleMech(ComplexEquipment):
     meta_data = models.TextField()
-    designation = models.CharField(max_length=30, unique=True)
+    designation = models.CharField(max_length=30, unique=False)
 
     def build_mech(self, mech_profile):
         self.build_segments(mech_profile["segments"])
+        self.build_equipment(mech_profile)
+        self.save()
 
     def build_segments(self, segments_profile):
         for segment in segments_profile:
             new_segment = Segment.objects.create(mech=self)
             new_segment.build_segment(segments_profile[segment])
 
-
-class BattleMech(BattleMechDesign):
     def update(self, mech_profile):
         self.build_segments(mech_profile)
 
@@ -58,7 +75,9 @@ class BattleMech(BattleMechDesign):
         return repair_cost
 
 
-class Segment(BaseModel):
+class Segment(models.Model):
+    id = models.UUIDField(primary_key=True, unique=True, default=uuid.uuid4)
+    name = models.CharField(max_length=30)
     SEGMENT_NAME_CHOICES = [
         ("HEAD", "Head"),
         ("CT", "Center Torso"),
@@ -76,18 +95,21 @@ class Segment(BaseModel):
     mech = models.ForeignKey(
         BattleMech, on_delete=models.PROTECT, related_name="segments"
     )
-    max_armor = models.IntegerField()
-    current_armor = models.IntegerField()
-    max_internal_structure = models.IntegerField()
-    current_internal_structure = models.IntegerField()
+    max_armor = models.IntegerField(null=True, blank=True)
+    current_armor = models.IntegerField(null=True, blank=True)
+    max_internal_structure = models.IntegerField(null=True, blank=True)
+    current_internal_structure = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
 
     def build_segment(self, segment_profile):
-        self.name = segment_profile["name"]
-        self.max_armor = segment_profile["max_armor"]
+        self.name = segment_profile.get("name", "")
+        self.max_armor = segment_profile.get("max_armor", 0)
         self.current_armor = self.max_armor
-        self.max_internal_structure = segment_profile["max_internal_structure"]
+        self.max_internal_structure = segment_profile.get("max_internal_structure", 0)
         self.current_internal_structure = self.max_internal_structure
-        self.build_components(segment_profile["components_profile"])
+        self.build_components(segment_profile[self.name]["components"])
         self.save()
 
     def build_components(self, components_profile):
@@ -162,13 +184,13 @@ class Component(Equipment):
 
 
 class Weapon(Component):
-    damage = models.IntegerField()
-    heat = models.IntegerField()
-    type = models.CharField(max_length=30)
-    min_range = models.IntegerField()
-    short_range = models.IntegerField()
-    med_range = models.IntegerField()
-    long_range = models.IntegerField()
+    damage = models.IntegerField(null=True, blank=True)
+    heat = models.IntegerField(null=True, blank=True)
+    type = models.CharField(max_length=30, null=True, blank=True)
+    min_range = models.IntegerField(null=True, blank=True)
+    short_range = models.IntegerField(null=True, blank=True)
+    med_range = models.IntegerField(null=True, blank=True)
+    long_range = models.IntegerField(null=True, blank=True)
 
     def build_weapon(self, weapon_profile):
         self.damage = weapon_profile.get("damage", 0)

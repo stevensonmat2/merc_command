@@ -1,32 +1,32 @@
 import random
 from django.db.models import Q
-from merc_command.company_manager.domain.models import equipment
+from company_manager.domain.models import Equipment, BaseModel
 
 
 from django.db import models
 
 
-class Character(models.Model):
+class Character(BaseModel):
     pass
 
 
-class PlotDevice(models.Model):
+class PlotDevice(BaseModel):
     pass
 
 
-class Plot(models.Model):
+class Plot(BaseModel):
     pass
 
 
-class Setting(models.Model):
+class Setting(BaseModel):
     pass
 
 
-class Conflict(models.Model):
+class Conflict(BaseModel):
     pass
 
 
-class Resolution(models.Model):
+class Resolution(BaseModel):
     pass
 
 
@@ -36,13 +36,16 @@ class Mission(models.Model):
     )
     salvage_points = models.IntegerField()
     payment = models.DecimalField(max_digits=11, decimal_places=2)
-    origin_faction = models.ForeignKey()
-    contracted_faction = models.ForeignKey()
-    targeted_faction = models.ForeignKey()
+    # origin_faction = models.ForeignKey()
+    # contracted_faction = models.ForeignKey()
+    # targeted_faction = models.ForeignKey()
 
     def create_mission(self, mission_profile):
         self.setting = self.get_mission_setting(mission_profile)
         self.set_mission_rewards(mission_profile)
+        self.payment = mission_profile.get("payment", 0)
+        self.origin_faction = mission_profile.get("origin_faction", "")
+        self.contracted_faction = m
 
     def get_mission_setting(self, mission_profile):
         setting_choice = random.choice(mission_profile.get("potential_settings", []))
@@ -68,10 +71,10 @@ class Mission(models.Model):
             new_reward.mission = self
 
 
-class Reward(equipment):
+class Reward(Equipment):
     mission = models.ForeignKey(Mission, on_delete=models.CASCADE)
     pass
 
 
-class Campaign(models.Model):
+class Campaign(BaseModel):
     pass
