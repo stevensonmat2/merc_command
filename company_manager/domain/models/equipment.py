@@ -31,7 +31,7 @@ class Equipment(BaseModel):
         self.save()
 
     def __str__(self):
-        return self.name
+        return self.name or str(self.id)
 
 
 class ComplexEquipment(Equipment):
@@ -101,7 +101,7 @@ class Segment(models.Model):
     current_internal_structure = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return self.name or str(self.id)
 
     def build_segment(self, segment_profile):
         self.name = segment_profile.get("name", "")
@@ -109,7 +109,7 @@ class Segment(models.Model):
         self.current_armor = self.max_armor
         self.max_internal_structure = segment_profile.get("max_internal_structure", 0)
         self.current_internal_structure = self.max_internal_structure
-        self.build_components(segment_profile[self.name]["components"])
+        self.build_components(segment_profile.get("components", ""))
         self.save()
 
     def build_components(self, components_profile):

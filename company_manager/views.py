@@ -39,7 +39,8 @@ def upload_flechs_json_file(request, pk):
                 mech = BattleMech.objects.filter(id=mech_id)
 
                 if mech:
-                    mech.update(mech_profile)
+                    # mech.update(mech_profile)
+                    pass
                 else:
                     designation = mech_profile["name"].split(" ")
                     try:
@@ -121,26 +122,32 @@ meta_items = [
 def get_segment_data(src_meta_data):
     split_data = [word.lower() for word in src_meta_data.split("\n")]
     segments = {}
+    print(split_data)
     for index, word in enumerate(split_data):
         if word.split(":")[0] in segment_armor:
             segment = segments_dict[word.split(" ")[0]]
+            # print(segment)
             segments[segment] = dict()
             segments[segment]["name"] = segment
             segments[segment]["armor"] = int(word.split(":")[1])
             # print(segments[word.split(" ")[0]]["armor"])
         elif word.strip(":") in all_segments:
             segment = word.strip(":")
-            for component in split_data[index:]:
-                if component not in segments:
+            segments[segment] = dict()
+            segments[segment]["components"] = dict()
+            # print(segment)
+            # print(split_data[index:])
+            for component in split_data[index+1:]:
+                # print(component)
+                if component.strip(":") not in all_segments:
                     index += 1
-                    if component != "-Empty-":
-                        segments[segment] = dict()
-                        segments[segment]["components"] = dict()
+                    # print(component)
+                    if component and component != "-empty-":
                         segments[segment]["components"][component] = dict()
                         segments[segment]["components"][component]["name"] = component
                 else:
                     break
-    print(segments)
+    # print(segments)
     return segments
 
 
