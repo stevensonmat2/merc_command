@@ -1,3 +1,5 @@
+# from audioop import reverse
+from django.urls import reverse
 from django.db import models
 from .organizations import Company
 from .base import BaseModel
@@ -73,6 +75,9 @@ class BattleMech(ComplexEquipment):
         for segment in segments:
             repair_cost += segment.repair_cost()
         return repair_cost
+
+    def view(self):
+        return reverse("mech_view", kwargs={"pk": self.pk})
 
 
 class Segment(models.Model):

@@ -11,7 +11,10 @@ class User(AbstractUser):
 
 class Faction(models.Model):
     origin = models.CharField(max_length=30, choices=ORIGIN_CHOICES)
-    pass
+
+
+class Warchest(models.Model):
+    points = models.IntegerField(default=0)
 
 
 class Company(models.Model):
@@ -20,7 +23,14 @@ class Company(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="companies"
     )
     origin = models.CharField(max_length=30, choices=ORIGIN_CHOICES)
-    wallet = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    # wallet = models.DecimalField(default=0, max_digits=12, decimal_places=2)
+    warchest = models.ForeignKey(Warchest, on_delete=models.CASCADE, null=True)
+
+    def __str__(self) -> str:
+        return self.name
+
+    def view(self):
+        return reverse("company_view", kwargs={"pk": self.pk})
 
     def upload_mechs(self):
         return reverse("upload_mechs", kwargs={"pk": self.pk})

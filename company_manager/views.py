@@ -5,21 +5,38 @@ from django.contrib import messages
 from .domain.models import *
 
 
+def home(request):
+    user = User.objects.get(id=request.user.id)
+    companies = Company.objects.filter(user=user)
+
+    return render(request, "home.html", {"user": user, "companies": companies})
+
+
 def create_mech(request):
     return render(request, "mechs/add_mech.html")
 
 
-def company_list(request):
+def company_view(request, pk):
     user = User.objects.get(id=request.user.id)
-    companies = user.companies.all()
+    company = get_object_or_404(Company, pk=pk)
+    mechs = BattleMech.objects.filter(company=company)
+    pilots = MechWarrior.objects.filter(company=company)
+
     return render(
         request,
-        "company/company_list.html",
+        "company/company_view.html",
         {
             "user": user,
-            "companies": companies,
+            "company": company,
+            "mechs": mechs,
+            "pilots": pilots,
         },
     )
+
+
+def mech_view(request, pk):
+    mech = get_object_or_404(BattleMech, pk=pk)
+    return render(request, "mechs/mech_view.html", {"mech": mech})
 
 
 def upload_flechs_json_file(request, pk):
@@ -97,7 +114,7 @@ all_segments = [
     "center torso",
     "left leg",
     "right leg",
-    "head"
+    "head",
 ]
 meta_items = [
     "weapons",
@@ -137,7 +154,7 @@ def get_segment_data(src_meta_data):
             segments[segment]["components"] = dict()
             # print(segment)
             # print(split_data[index:])
-            for component in split_data[index+1:]:
+            for component in split_data[index + 1 :]:
                 # print(component)
                 if component.strip(":") not in all_segments:
                     index += 1
